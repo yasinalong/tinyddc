@@ -89,7 +89,7 @@ make install PREFIX="$HOME/.local"
 make test
 ```
 
-测试检查 DP/HDMI 报文、16 位字节顺序、零校验字节、查询报文、错误应答与参数拒绝路径；不会访问显示器或发送 DDC。开发时已在 M3 MacBook Air 的 macOS 15.1.1 上编译，并通过只读 `list` 确认经 USB-C 扩展坞 HDMI 连接的 JQ24F260L 可映射到 DCP 传输。`--dry-run` 已验证选择目标和 DP 报文。初版在显示 Mac 画面时，`get-input` 未获得合法 VCP 应答，而 BetterDisplay 对照查询返回 HDMI1 值 `17`，因此初版查询存在实际兼容问题。当前版本已修正 Get VCP 校验和与 IOAVService 读偏移，通过构建和报文测试；**修正版尚待显示 Mac 画面时复验，也尚未执行实际输入切换。** 显示另一台电脑画面时收到的 null reply 或残留尾部数值均不作为有效输入源。
+测试检查 DP/HDMI 报文、16 位字节顺序、零校验字节、查询报文、错误应答与参数拒绝路径；不会访问显示器或发送 DDC。开发时已在 M3 MacBook Air 的 macOS 15.1.1 上编译，并通过只读 `list` 确认经 USB-C 扩展坞 HDMI 连接的 JQ24F260L 可映射到 DCP 传输。`--dry-run` 已验证选择目标和 DP 报文。初版在显示 Mac 画面时，`get-input` 未获得合法 VCP 应答，而 BetterDisplay 对照查询返回 HDMI1 值 `17`。修正 Get VCP 校验和与 IOAVService 读偏移后，2026-10-04 实机复验成功读取 `input=17`，与 BetterDisplay 的顺序对照查询一致；向已经选中的 HDMI1 写入 `17` 后，传输成功并回读仍为 `17`。**已验证当前输入下的 DDC 读取与同值写入；尚未验证 HDMI1 与 DP 之间的实际画面切换。** 显示另一台电脑画面时收到的 null reply 或残留尾部数值均不作为有效输入源。
 
 底层 API 签名、注册表键、传输地址、等待/重复写入模式和 DDC 报文约定参考并改编自以下 MIT 项目；命令解析、目标选择、运行时 API 加载与项目结构为本项目实现：
 
