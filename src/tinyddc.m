@@ -1,7 +1,8 @@
 /* tinyddc — an on-demand Apple Silicon display input CLI.
  * SPDX-License-Identifier: MIT
  * IOAVService signatures, registry keys and DDC conventions are adapted from
- * waydabber/m1ddc and AppleSiliconDDC (see THIRD_PARTY_NOTICES.md). */
+ * waydabber/m1ddc, AppleSiliconDDC and MonitorControl
+ * (see THIRD_PARTY_NOTICES.md). */
 #import <Foundation/Foundation.h>
 #import <CoreGraphics/CoreGraphics.h>
 #import <IOKit/IOKitLib.h>
@@ -249,7 +250,9 @@ static int communicate(Display *display, bool get, uint16_t value) {
             }
             if (status == kIOReturnSuccess) {
                 usleep(50000);
-                status = av_read(service, display.chipAddress, DDC_DATA_ADDRESS, reply, sizeof(reply));
+                /* Read has no source-address prefix; use offset 0 as in
+                 * MonitorControl's current IOAVService implementation. */
+                status = av_read(service, display.chipAddress, 0, reply, sizeof(reply));
                 valid = status == kIOReturnSuccess && ddc_parse_input_reply(reply, sizeof(reply), &current, &maximum);
             }
             if (!valid && attempt < 2) usleep(20000);

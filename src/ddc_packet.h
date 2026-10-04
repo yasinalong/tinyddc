@@ -29,8 +29,8 @@ static inline void ddc_get_input_packet(uint8_t out[4]) {
     out[0] = 0x82;
     out[1] = 0x01;
     out[2] = DDC_INPUT_VCP;
-    /* IOAVService's Get VCP request uses the upstream read-request seed. */
-    out[3] = ddc_checksum(0x6e, out, 3);
+    /* The request checksum includes the separately supplied host source byte. */
+    out[3] = ddc_checksum(0x6e ^ DDC_DATA_ADDRESS, out, 3);
 }
 
 static inline bool ddc_parse_input_reply(const uint8_t *reply, size_t n,

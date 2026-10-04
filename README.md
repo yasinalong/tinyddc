@@ -89,11 +89,14 @@ make install PREFIX="$HOME/.local"
 make test
 ```
 
-测试检查 DP/HDMI 报文、16 位字节顺序、零校验字节、查询报文、错误应答与参数拒绝路径；不会访问显示器或发送 DDC。开发时已在 M3 MacBook Air 的 macOS 15.1.1 上编译，并通过只读 `list` 确认经 USB-C 扩展坞 HDMI 连接的 JQ24F260L 可映射到 DCP 传输。`--dry-run` 已验证选择目标和 DP 报文；实际 `get-input` 查询未获得合法 VCP 应答，IOKit 返回 `0x00000000`。这一结果不能证明显示器接受输入切换，也不能单凭它判定失败原因。**尚未执行实际输入切换。**
+测试检查 DP/HDMI 报文、16 位字节顺序、零校验字节、查询报文、错误应答与参数拒绝路径；不会访问显示器或发送 DDC。开发时已在 M3 MacBook Air 的 macOS 15.1.1 上编译，并通过只读 `list` 确认经 USB-C 扩展坞 HDMI 连接的 JQ24F260L 可映射到 DCP 传输。`--dry-run` 已验证选择目标和 DP 报文。初版在显示 Mac 画面时，`get-input` 未获得合法 VCP 应答，而 BetterDisplay 对照查询返回 HDMI1 值 `17`，因此初版查询存在实际兼容问题。当前版本已修正 Get VCP 校验和与 IOAVService 读偏移，通过构建和报文测试；**修正版尚待显示 Mac 画面时复验，也尚未执行实际输入切换。** 显示另一台电脑画面时收到的 null reply 或残留尾部数值均不作为有效输入源。
 
 底层 API 签名、注册表键、传输地址、等待/重复写入模式和 DDC 报文约定参考并改编自以下 MIT 项目；命令解析、目标选择、运行时 API 加载与项目结构为本项目实现：
 
 - [waydabber/m1ddc](https://github.com/waydabber/m1ddc)，尤其是 `headers/ioregistry.h`、`headers/i2c.h`、`sources/ioregistry.m`、`sources/i2c.m`。
 - [waydabber/AppleSiliconDDC](https://github.com/waydabber/AppleSiliconDDC)，尤其是 `AppleSiliconDDC.swift` 和 `Bridging-Header.h`。
+- [MonitorControl](https://github.com/MonitorControl/MonitorControl/blob/main/MonitorControl/Support/Arm64DDC.swift) 的当前 `Arm64DDC.swift`，用于核对 IOAVService 读取的 `offset=0` 语义。
+
+Get VCP 请求的 XOR 校验覆盖目的地址 `0x6E`、主机源地址 `0x51` 和报文内容。`0x60` 查询因此发送 `82 01 60 DC`（源字节由 IOAVService 单独传入）；读应答使用 `offset=0`，并继续严格拒绝 null reply、错误帧头和错误校验和。
 
 这些项目均不是运行或编译依赖，本工具不会启动它们。归属与 MIT 许可全文见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)；本项目采用 [MIT 许可](LICENSE)。
